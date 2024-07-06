@@ -1,23 +1,40 @@
 pipeline {
     agent any
 
+    environment {
+        REPO_URL = 'https://github.com/Ivvyafter/project_scripting_jenkins.git'
+        BRANCH_NAME = 'main'
+        GITHUB_TOKEN = credentials('github_token')
+    }
+
     stages {
-        stage('Build') {
+        stage('Clone Repository') {
+            steps {
+                git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
+            }
+        }
+
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Test') {
+        stage('Build') {
             steps {
-                sh 'npm test'
+                sh 'npm run build'
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to GitHub Pages') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
-                    sh 'npm run deploy'
+                script {
+                    def remote = "https://${GITHUB_TOKEN}@github.com/Ivvyafter/project_scripting_jenkins.git"
+                    sh '''
+                    git config user.name "jenkins"
+                    git config user.email "jenkins@example.com"
+                    npm run deploy -- --repo $remote
+                    '''
                 }
             }
         }
@@ -25,12 +42,17 @@ pipeline {
 
     post {
         always {
-            junit 'test-results.xml'
+            cleanWs()
+        }
+        success {
+            mail to: 'ivvyafter@gmail.com',
+                 subject: "Success: Build ${env.BUILD_NUMBER}",
+                 body: "The build ${env.BUILD_NUMBER} was successful."
         }
         failure {
             mail to: 'ivvyafter@gmail.com',
-                 subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-                 body: "Something is wrong with ${env.BUILD_URL}"
+                 subject: "Failure: Build ${env.BUILD_NUMBER}",
+                 body: "The build ${env.BUILD_NUMBER} failed."
         }
     }
 }
