@@ -1,39 +1,23 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'project_scripting_jenkins'
-    }
-
     stages {
-        stage('Clone Repository') {
+        stage('Build') {
             steps {
-                git branch: 'main', url: 'https://github.com/Ivvyafter/project_scripting_jenkins.git'
+                sh 'npm install'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Test') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                script {
-                    docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").inside {
-                        sh 'npm test'
-                    }
-                }
+                sh 'npm test'
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").run('-p 3000:3000')
+                withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
+                    sh 'npm run deploy'
                 }
             }
         }
@@ -41,17 +25,12 @@ pipeline {
 
     post {
         always {
-            cleanWs()
-        }
-        success {
-            mail to: 'ivvyafter@gmail.com',
-                 subject: "Succès : Build ${env.BUILD_NUMBER}",
-                 body: "Le build ${env.BUILD_NUMBER} a réussi."
+            junit 'test-results.xml'
         }
         failure {
             mail to: 'ivvyafter@gmail.com',
-                 subject: "Échec : Build ${env.BUILD_NUMBER}",
-                 body: "Le build ${env.BUILD_NUMBER} a échoué."
+                 subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "Something is wrong with ${env.BUILD_URL}"
         }
     }
 }
