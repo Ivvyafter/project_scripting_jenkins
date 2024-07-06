@@ -2,20 +2,20 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'project_scripting_jenkins:latest'
+        DOCKER_IMAGE = 'project_scripting_jenkins'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main','https://github.com/Ivvyafter/project_scripting_jenkins.git'
+                git branch: 'main', url: 'https://github.com/Ivvyafter/project_scripting_jenkins.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                     docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
@@ -25,15 +25,15 @@ pipeline {
                 script {
                     docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").inside {
                         sh 'npm test'
-               }
+                    }
+                }
             }
         }
 
-}
         stage('Deploy') {
             steps {
                 script {
-                   docker.run("${DOCKER_IMAGE}:${env.BUILD_NUMBER}", '-p 3000:3000')
+                    docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").run('-p 3000:3000')
                 }
             }
         }
