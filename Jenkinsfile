@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Ivvyafter/project_scripting_jenkins.git'
+                git branch: 'main','https://github.com/Ivvyafter/project_scripting_jenkins.git'
             }
         }
 
