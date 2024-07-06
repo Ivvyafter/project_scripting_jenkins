@@ -15,7 +15,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                     docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
@@ -23,15 +23,16 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh 'docker run --rm $DOCKER_IMAGE npm test'
-                }
+                    docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").inside {
+                        sh 'npm test'
+               }
             }
         }
 
         stage('Deploy') {
             steps {
                 script {
-                    sh 'docker run -d -p 3000:3000 $DOCKER_IMAGE'
+                   docker.run("${DOCKER_IMAGE}:${env.BUILD_NUMBER}", '-p 3000:3000')
                 }
             }
         }
