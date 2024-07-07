@@ -1,49 +1,37 @@
 pipeline {
-    agent any
-
+    agent any 
     environment {
-        REPO_URL = 'https://github.com/Ivvyafter/project_scripting_jenkins.git'
-        BRANCH_NAME = 'main'
-        GITHUB_TOKEN = credentials('github_token')
+        GIT_REPO = 'https://github.com/Ivvyafter/project_scripting_jenkins.git'
     }
-
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
+                git url: GIT_REPO, credentialsId: 'eec61187-4364-46df-bc46-7556a839b558'
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Build') {
             steps {
                 sh 'npm install'
             }
         }
-
-        stage('Build') {
+        stage('Deploy') {
             steps {
-                sh 'npm run build'
-            }
-        }
-
-        stage('Deploy to GitHub Pages') {
-            steps {
-                script {
-                    def remote = "https://${GITHUB_TOKEN}@github.com/Ivvyafter/project_scripting_jenkins.git"
-                    sh '''
-                    git config user.name "jenkins"
-                    git config user.email "jenkins@example.com"
-                    npm run deploy -- --repo $remote
-                    '''
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                    sh """
+                    git config --global user.name "ivvyafter"
+                    git config --global user.email "ivvyafter@gmail.com"
+                    git remote set-url origin https://${GITHUB_TOKEN}@github.com/Ivvyafter/project_scripting_jenkins.git
+                    git add .
+                    git commit -m "Automated Jenkins commit"
+                    git push origin main
+                    """
                 }
             }
         }
     }
-
     post {
         always {
-           
-
+            echo 'Pipeline finished.'
         }
     }
 }
