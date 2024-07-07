@@ -18,7 +18,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
                     sh """
-                    git config --global user.name "ivvyafter"
+                    git config --global user.name "ivvAfter"
                     git config --global user.email "ivvyafter@gmail.com"
                     git remote set-url origin https://${GITHUB_TOKEN}@github.com/Ivvyafter/project_scripting_jenkins.git
                     git add .
