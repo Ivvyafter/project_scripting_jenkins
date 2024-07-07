@@ -14,6 +14,14 @@ pipeline {
                 sh 'npm install'
             }
         }
+
+
+
+	stage('Test') {
+      steps {
+        sh 'npm test'
+      }
+    }
         stage('Deploy') {
             steps {
                 withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
