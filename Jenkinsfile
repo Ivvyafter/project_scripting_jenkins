@@ -42,17 +42,8 @@ pipeline {
 
     post {
         always {
-            cleanWs()
-        }
-        success {
-            mail to: 'ivvyafter@gmail.com',
-                 subject: "Success: Build ${env.BUILD_NUMBER}",
-                 body: "The build ${env.BUILD_NUMBER} was successful."
-        }
-        failure {
-            mail to: 'ivvyafter@gmail.com',
-                 subject: "Failure: Build ${env.BUILD_NUMBER}",
-                 body: "The build ${env.BUILD_NUMBER} failed."
+           
+
         }
     }
 }
